@@ -1,4 +1,4 @@
-    E->T E1
+E->T E1
 E1->opsuma T E1
 E1->opresta T E1
 E1->opmult T E1
