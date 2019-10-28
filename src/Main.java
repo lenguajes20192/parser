@@ -5,10 +5,45 @@ import java.util.*;
 
 public class Main {
 
-    static HashMap<String, String[][]> mp = new HashMap<String, String[][]>();
-    static ArrayList<String>  arrOfKeys = new ArrayList<String>();
-    static Deque<String> keys = new LinkedList<String>();
-    static Deque<String[]> val = new LinkedList<String[]>();
+    private static HashMap<String, String[][]> mp = new HashMap<>();
+    private static ArrayList<String>  arrOfKeys = new ArrayList<>();
+    private static Deque<String> keys = new LinkedList<>();
+    private static Deque<String[]> val = new LinkedList<>();
+
+    private static void primeros(){
+        HashMap<String, HashSet<String>> first = new HashMap<>();
+        for(int i = 0; i < mp.size(); i++){
+            String queueHead = keys.removeLast();
+            String[][] values = mp.get(queueHead);
+            //System.out.println(values.length);
+            keys.addFirst(queueHead);
+            HashSet<String> pos = new HashSet<>();
+            for(int j = values.length - 1; j >= 0 ; j--){
+                if(!keys.contains(values[j][0])){
+                    pos.add(values[j][0]);
+                }else if (first.get(values[j][0]).contains("epsilon") && values[j].length == 1){
+
+                    Set<String> difference = new HashSet<>(first.get(values[j][0]));
+                    difference.remove("epsilon");
+                    pos.addAll(difference);
+
+                }else if(first.get(values[j][0]).contains("epsilon") && first.get(values[j][1]) != null) {
+
+                    Set<String> difference = new HashSet<>(first.get(values[j][0]));
+                    difference.remove("epsilon");
+                    pos.addAll(difference);
+
+                    pos.addAll(first.get(values[j][1]));
+
+                }else{
+                    pos.addAll(first.get(values[j][0]));
+
+                }
+            }
+            first.put(queueHead, pos);
+        }
+        System.out.println(Collections.singletonList(first.get("E")));
+    }
 
     public static void main(String [] args){
 
@@ -36,15 +71,15 @@ public class Main {
                 String[][] values = new String[arrSize][1];
                 for(int i = 0; i < arrSize; i++) {
                     values[i] = val.pop();
+                    val.addLast(values[i]);
                 }
                 mp.put(s, values);
-
             }
-            System.out.println(Arrays.asList(mp.get("E1")[0]));
 
         } catch (IOException e) {
             e.printStackTrace();
         }
+        primeros();
 
     }
 

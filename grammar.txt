@@ -1,3 +1,7 @@
+par->( par1
+par->) par1
+par1->E par par1
+par1->epsilon
 E->T E1
 E1->opsuma T E1
 E1->opresta T E1
@@ -11,7 +15,3 @@ opsuma->+
 opresta->-
 opmult->*
 opdiv->/
-par->( par1
-par->) par1
-par1->E par par1
-par1->epsilon
