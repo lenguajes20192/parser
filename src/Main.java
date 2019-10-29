@@ -9,12 +9,14 @@ public class Main {
     private static ArrayList<String>  arrOfKeys = new ArrayList<>();
     private static Deque<String> keys = new LinkedList<>();
     private static Deque<String[]> val = new LinkedList<>();
+    private static HashMap<String, HashSet<String>> first = new HashMap<>();
 
     private static void primeros(){
-        HashMap<String, HashSet<String>> first = new HashMap<>();
+
         for(int i = 0; i < mp.size(); i++){
             String queueHead = keys.removeLast();
             String[][] values = mp.get(queueHead);
+            //System.out.println(Arrays.deepToString(mp.get(queueHead)));
             //System.out.println(values.length);
             keys.addFirst(queueHead);
             HashSet<String> pos = new HashSet<>();
@@ -42,7 +44,49 @@ public class Main {
             }
             first.put(queueHead, pos);
         }
-        System.out.println(Collections.singletonList(first.get("E")));
+        System.out.println(Collections.singletonList(first.get("C")));
+    }
+
+    private static void siguientes(){
+        HashMap<String, HashSet<String>> follow = new HashMap<>();
+        Deque<String> keysAux = new LinkedList<>();
+        for (int i=0; i<keys.size(); i++){ //make a copy of keys to iterate rules
+            String element = keys.removeFirst();
+            keysAux.add(element);
+            keys.addLast(element);
+        }
+
+        for(int i = 0; i < mp.size(); i++){
+            String keyFollow = keys.removeFirst(); //KeyFollow is the NT to which Follow is being calculated
+            keys.addLast(keyFollow);
+            HashSet<String> sig = new HashSet<>(); //element's set to follows
+            if(keyFollow == arrOfKeys.get(0)){
+                sig.add("$");
+            }
+            for(int k = 0; k < mp.size(); k++){ //iterate rules
+                String keyRule = keysAux.removeFirst();
+                keysAux.addLast(keyRule);
+                String[][] values = mp.get(keyRule);
+                for(int j = 0; j < values.length; j++){
+                    List<String> valuesList = Arrays.asList(values[j]);
+                    if(valuesList.contains(keyFollow)){
+                        if(valuesList.indexOf(keyFollow) == valuesList.size()-1){
+                            sig.addAll(follow.get(keyRule));
+                        }
+                        else if (!keys.contains(valuesList.get(valuesList.indexOf(keyFollow)+1))){  //el contiguo es un T
+                            sig.add(valuesList.get(valuesList.indexOf(keyFollow)+1));
+                        }else if (keys.contains(valuesList.get(valuesList.indexOf(keyFollow)+1))){ //el contiguo es un NT
+                            sig.addAll(first.get(valuesList.get(valuesList.indexOf(keyFollow)+1)));
+                            sig.remove("epsilon");
+                        }
+                    }
+                }
+            }
+            follow.put(keyFollow, sig);
+        }
+        System.out.println(Collections.singletonList("Siguientes A: "+follow.get("A")));
+        System.out.println(Collections.singletonList("Siguientes B: "+follow.get("B")));
+        System.out.println(Collections.singletonList("Siguientes C: "+follow.get("C")));
     }
 
     public static void main(String [] args){
@@ -50,7 +94,7 @@ public class Main {
         try {
 
             File file =
-                    new File("grammar.txt");
+                    new File("grammar3.txt");
             Scanner sc = new Scanner(file);
 
             String line;
@@ -80,6 +124,7 @@ public class Main {
             e.printStackTrace();
         }
         primeros();
+        siguientes();
 
     }
 
