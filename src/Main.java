@@ -10,6 +10,8 @@ public class Main {
     private static Deque<String> keys = new LinkedList<>();
     private static Deque<String[]> val = new LinkedList<>();
     private static HashMap<String, HashSet<String>> first = new HashMap<>();
+    private static HashMap<String, HashSet<String>> follow = new HashMap<>();
+
 
     private static void primeros(){
 
@@ -44,11 +46,10 @@ public class Main {
             }
             first.put(queueHead, pos);
         }
-        System.out.println(Collections.singletonList(first.get("C")));
+        //System.out.println(Collections.singletonList(first.get("A")));
     }
 
     private static void siguientes(){
-        HashMap<String, HashSet<String>> follow = new HashMap<>();
         Deque<String> keysAux = new LinkedList<>();
         for (int i=0; i<keys.size(); i++){ //make a copy of keys to iterate rules
             String element = keys.removeFirst();
@@ -84,9 +85,41 @@ public class Main {
             }
             follow.put(keyFollow, sig);
         }
+        /*
         System.out.println(Collections.singletonList("Siguientes A: "+follow.get("A")));
         System.out.println(Collections.singletonList("Siguientes B: "+follow.get("B")));
         System.out.println(Collections.singletonList("Siguientes C: "+follow.get("C")));
+        */
+    }
+    private static void prediction(){
+
+        ArrayList<Set> pred = new ArrayList<>();
+        for(int i = 0; i < mp.size(); i++) {
+            String queueHead = keys.removeFirst();
+            String[][] values = mp.get(queueHead);
+            keys.addLast(queueHead);
+            for (int j = 0; j < values.length; j++) {
+                HashSet pred_j = new HashSet();
+                //System.out.println(values[j][0]);
+                if(values[j][0].equals("epsilon")){
+                    pred_j.addAll(follow.get(queueHead));
+                }else if(keys.contains(values[j][0]) && first.get(values[j][0]).contains("epsilon")){
+                    pred_j.addAll(first.get(values[j][0]));
+                    pred_j.addAll(follow.get(values[j][0]));
+                    pred_j.remove("epsilon");
+                    if(pred_j.contains("$")){
+                        pred_j.remove("$");
+                    }
+                }else if(keys.contains(values[j][0])){
+                    pred_j.addAll(first.get(values[j][0]));
+                }else{
+                    pred_j.add(values[j][0]);
+                }
+                pred.add(pred_j);
+            }
+        }
+        System.out.println(Arrays.asList(pred));
+
     }
 
     public static void main(String [] args){
@@ -125,7 +158,7 @@ public class Main {
         }
         primeros();
         siguientes();
-
+        prediction();
     }
 
 }
