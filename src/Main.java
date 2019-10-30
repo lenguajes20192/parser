@@ -1,6 +1,7 @@
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+import java.util.regex.Pattern;
 
 
 public class Main {
@@ -28,6 +29,40 @@ public class Main {
     static HashSet<String> h = new HashSet<String>();
     static HashMap<String, String> mpLexer = new HashMap<String, String>();
 
+    public static String printTok(int type, String lexeme, int row, int column){
+        String nextToken = "";
+        switch(type){
+            case 1:
+                if(h.contains(lexeme)) {// if reserved
+                    System.out.println("<" + lexeme + "," + row + "," + column + ">");
+                    nextToken = lexeme;
+                }else {
+                    System.out.println("<id," + lexeme + "," + row + "," + column + ">");
+                    nextToken = lexeme;
+                }
+                break;
+
+            case 2://belong to symbols
+                System.out.println("<" + mpLexer.get(lexeme) + "," + row + "," + column + ">");
+                nextToken = mpLexer.get(lexeme);
+                break;
+
+            case 3://is number
+                System.out.println("<tk_num," + lexeme + "," + row + "," + column + ">");
+                nextToken = lexeme;
+                break;
+
+            case 4://is string
+                System.out.println("<tk_cadena," + lexeme + "," + row + "," + column + ">");
+                nextToken = lexeme;
+                break;
+
+            default:
+                break;
+        }
+        return nextToken;
+    }
+    
     public static class Token {
         public int row;
         public int column;
@@ -41,32 +76,7 @@ public class Main {
             column = columnValue;
         }
 
-        public void printTok(){
-            switch(type){
-                case 1:
-                    if(h.contains(lexeme))// if reserved
-                        System.out.println("<" + lexeme+","+ row + ","+ column+">");
-                    else
-                        System.out.println("<id," + lexeme+"," + row + "," + column + ">");
-
-                    break;
-
-                case 2://belong to symbols
-                    System.out.println("<" + mpLexer.get(lexeme) + "," + row + "," + column + ">");
-                    break;
-
-                case 3://is number
-                    System.out.println("<tk_num," + lexeme + "," + row + "," + column + ">");
-                    break;
-
-                case 4://is string
-                    System.out.println("<tk_cadena," + lexeme + "," + row + "," + column + ">");
-                    break;
-
-                default:
-                    break;
-            }
-        }
+        
     }
 
     static void init() {
@@ -81,6 +91,275 @@ public class Main {
         System.out.println(">>>Error_lexico(linea:" + row + ",posicion:" + (column + 1) + ")");
     }
 
+    private static void lexer(){
+        init();
+        try {
+
+            File file =
+                    new File("1.txt");
+            Scanner sc = new Scanner(file);
+
+            String line;
+
+            int row = 1;
+            int column = 0;
+            int start = 0;
+            while (sc.hasNextLine()) {
+                char st='1';
+                line = sc.nextLine() ;
+                line = line + '\n';
+                for(int i = 0; i < line.length(); i++){
+                    column = i + 1;
+                    String character = Character.toString(line.charAt(i));
+                    switch (st){
+                        case '1':
+
+                            if(line.charAt(i) == '\n'){
+                                column--;
+                                break;
+                            }
+                            start = i;
+                            if(line.charAt(i) == '#'){
+                                i = line.length();
+                                break;
+                            }
+                            else if(line.charAt(i) == ' ' || Pattern.matches("[\t]", character)) {
+                                break;
+
+                            }else if(Pattern.matches("[a-zA-Z]", character)) {
+                                st = '2';
+                                break;
+                            }else if(line.charAt(i) >='0' && line.charAt(i) <= '9'){
+                                st = '3';
+                                break;
+                            }else if(line.charAt(i) == '"') {
+                                st = '4';
+                                break;
+
+                            }else if(line.charAt(i) == ':') {
+                                st = '6';
+                                break;
+                            }else if(line.charAt(i) == '<' || line.charAt(i) == '>' //caracteres que pueden ir solos o acompañados
+                                    || line.charAt(i) == '-' || line.charAt(i) == '+' || line.charAt(i) == '='
+                                    || line.charAt(i) == '|' || line.charAt(i) == '*' || line.charAt(i) == '/'
+                                    || line.charAt(i) == '&' || line.charAt(i) == '%'){
+                                st = '5';
+                                break;
+
+                            }else if(line.charAt(i) == '!'){//caracteres que no pueden ir solos
+                                st = '7';
+                                break;
+
+                            }else if (line.charAt(i) == '['){
+                                st = '8';
+                                break;
+                            }else if(mp.containsKey(String.valueOf(line.charAt(i)))){//se toman los solos
+                                Token t = new Token(2, String.valueOf(line.charAt(i)), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                break;
+                            }else{
+                                printError(row, start);
+                                System.exit(0);
+                            }
+                        case '2':
+                            if(line.charAt(i) == '#'){
+                                Token t = new Token(1, line.substring(start , i), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                i = line.length();
+                                break;
+                            }else if(line.charAt(i) >='0' && line.charAt(i) <= '9'){
+                                break;
+                            }else if(Pattern.matches("[a-zA-Z_]", character)) {
+                                break;
+                            }else if(line.charAt(i) == '-') {//variable resta
+                                Token t = new Token(1, line.substring(start , i), row, start + 1);
+                                Token t2 = new Token(2, String.valueOf(line.charAt(i)), row, start + 2);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                printTok(t2.type, t2.lexeme, t2.row, t2.column);
+                                st = '1';
+                                break;
+
+                            }else{
+                                Token t = new Token(1, line.substring(start , i), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                i--;
+                                break;
+                            }
+                        case '3':
+                            if(line.charAt(i) == '#') {
+                                Token t = new Token(3, line.substring(start, i), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                i = line.length();
+                                break;
+                            }else if(line.charAt(i) >='0' && line.charAt(i) <= '9'){
+                                break;
+
+                            }else if(line.charAt(i) == '.'){//90.88.00
+                                //System.out.println(line.charAt(i));
+                                //System.out.println(line.substring(start, i));
+                                if(line.substring(start, i).contains(".")) {
+                                    Token t = new Token(3, line.substring(start , i), row, start + 1);
+                                    printTok(t.type, t.lexeme, t.row, t.column);
+                                    i--;
+                                    st = '1';
+                                    break;
+                                }
+                                break;
+
+                            }else if(line.charAt(i) == '-') {//num resta
+                                Token t = new Token(3, line.substring(start , i), row, start + 1);
+                                Token t2 = new Token(2, String.valueOf(line.charAt(i)), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                printTok(t2.type, t2.lexeme, t2.row, t2.column);
+                                st = '1';
+                                break;
+
+                            }
+                            else{
+                                Token t = new Token(3, line.substring(start , i), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                i--;
+                                break;
+                            }
+                        case '4':
+                            if(line.charAt(i) == '\n'){
+                                column = start + 1;
+                                printError(row, start);
+                                System.exit(0);
+                            }else if(line.charAt(i) == '"'){
+                                Token t = new Token(4, line.substring(start , i + 1), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                break;
+                            }else{
+                                break;
+                            }
+                        case '5':
+                            if(line.charAt(i) == '#') {
+                                if(mp.containsKey(line.substring(start, i))) {
+                                    Token t = new Token(2, line.substring(start, i), row, start + 1);
+                                    printTok(t.type, t.lexeme, t.row, t.column);
+                                }else{
+                                    printError(row, start);
+                                    System.exit(0);
+                                }
+                                i = line.length();
+                                break;
+
+                            }else if (line.charAt(i - 1) == '-' && (line.charAt(i) >='0' && line.charAt(i) <= '9')){ // negative number
+                                st = '3';
+                                break;
+                            }else if(line.charAt(i) == '='){
+                                Token t = new Token(2, line.substring(start, i + 1), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                break;
+                            }else if(line.charAt(i -1) == '-' && line.charAt(i) == '>') {// tk_ejecuta
+                                Token t = new Token(2, line.substring(start, i + 1), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                break;
+                            }else if(line.charAt(i) == '+' && line.charAt(i - 1) == '+') {
+                                Token t = new Token(2, line.substring(start, i + 1), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                break;
+                            }else if(line.charAt(i) == '-' && line.charAt(i - 1) == '-'){
+                                Token t = new Token(2, line.substring(start, i + 1), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                break;
+                            }else if(line.charAt(i) == '>'&& line.charAt(i - 1) == '>' || (line.charAt(i) == '<'&& line.charAt(i - 1) == '<')
+                                    || (line.charAt(i) == '|' && line.charAt(i - 1) == '|') || (line.charAt(i) == '*' && line.charAt(i - 1) == '*')) {//right shift
+                                if (line.charAt(i + 1) == ':' && line.charAt(i + 2) == '=') {
+
+                                    Token t = new Token(2, line.substring(start, i + 3), row, start + 1);
+                                    printTok(t.type, t.lexeme, t.row, t.column);
+                                    i += 2;
+                                    st = '1';
+                                    break;
+                                } else {//prints concat, shifts and exp
+                                    Token t = new Token(2, line.substring(start, i + 1), row, start + 1);
+                                    printTok(t.type, t.lexeme, t.row, t.column);
+                                    st = '1';
+                                    break;
+                                }
+                            }else if(line.charAt(i) == ':' && line.charAt(i + 1) == '='){
+                                Token t = new Token(2, line.substring(start, i + 2), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                i++;
+                                st = '1';
+                                break;
+                            }else{
+                                if(mp.containsKey(line.substring(start, i))){
+                                    Token t = new Token(2, line.substring(start, i), row, start + 1);
+                                    printTok(t.type, t.lexeme, t.row, t.column);
+                                    st='1';
+                                    i--;
+                                    break;
+                                }else{
+                                    column--;
+                                    printError(row, start);
+                                    System.exit(0);
+                                }
+
+                            }
+                        case '6':
+                            if(line.charAt(i) == '='){
+                                break;
+                            }else if(line.charAt(i) == ':' && line.charAt(i - 1) == '=') {// :=: found
+                                Token t = new Token(2, line.substring(start, i + 1), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                break;
+                            }else if ((line.charAt(i - 1) == '*' && line.charAt(i - 1) == '=')){
+                                Token t = new Token(2, line.substring(start, i + 1), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                break;
+                            }else{
+                                Token t = new Token(2, line.substring(start, i), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                i--;
+                                st = '1';
+                                break;
+                            }
+                        case '7':
+                            if(line.charAt(i) == '='){
+                                Token t = new Token(2, line.substring(start, i + 1), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                break;
+                            }else{
+                                column--;
+                                printError(row, start);
+                                System.exit(0);
+                            }
+                        case '8':
+                            if(line.charAt(i) == ']'){
+                                Token t = new Token(2, line.substring(start, i + 1), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                st = '1';
+                                break;
+                            }else{
+                                Token t = new Token(2, line.substring(start, i), row, start + 1);
+                                printTok(t.type, t.lexeme, t.row, t.column);
+                                i--;
+                                st = '1';
+                                break;
+                            }
+
+                    }
+                }
+                row++;
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /* _____________________ LEXER END _________________________________ */
 
 
@@ -90,6 +369,7 @@ public class Main {
     private static Deque<String[]> val = new LinkedList<>();
     private static HashMap<String, HashSet<String>> first = new HashMap<>();
     private static HashMap<String, HashSet<String>> follow = new HashMap<>();
+    private static HashMap<String, ArrayList<String>> pred = new HashMap<>();
 
 
     private static void primeros(){
@@ -125,7 +405,7 @@ public class Main {
             }
             first.put(queueHead, pos);
         }
-        //System.out.println(Collections.singletonList(first.get("A")));
+        //System.out.println(Collections.singletonList(first.get("B")));
     }
 
     private static void siguientes(){
@@ -140,7 +420,7 @@ public class Main {
             String keyFollow = keys.removeFirst(); //KeyFollow is the NT to which Follow is being calculated
             keys.addLast(keyFollow);
             HashSet<String> sig = new HashSet<>(); //element's set to follows
-            if(keyFollow == arrOfKeys.get(0)){
+            if(keyFollow.equals(arrOfKeys.get(0))){
                 sig.add("$");
             }
             for(int k = 0; k < mp.size(); k++){ //iterate rules
@@ -172,16 +452,17 @@ public class Main {
     }
     private static void prediction(){
 
-        ArrayList<Set> pred = new ArrayList<>();
         for(int i = 0; i < mp.size(); i++) {
             String queueHead = keys.removeFirst();
             String[][] values = mp.get(queueHead);
             keys.addLast(queueHead);
+            ArrayList pred_i = new ArrayList();
             for (int j = 0; j < values.length; j++) {
-                HashSet pred_j = new HashSet();
+                //HashSet pred_j = new HashSet();
+                Deque pred_j = new LinkedList();
                 //System.out.println(values[j][0]);
                 if(values[j][0].equals("epsilon")){
-                    pred_j.addAll(follow.get(queueHead));
+                    pred_j.addLast(follow.get(queueHead));
                 }else if(keys.contains(values[j][0]) && first.get(values[j][0]).contains("epsilon")){
                     pred_j.addAll(first.get(values[j][0]));
                     pred_j.addAll(follow.get(values[j][0]));
@@ -190,26 +471,27 @@ public class Main {
                         pred_j.remove("$");
                     }
                 }else if(keys.contains(values[j][0])){
-                    pred_j.addAll(first.get(values[j][0]));
+                    pred_j.addLast(first.get(values[j][0]));
                 }else{
-                    pred_j.add(values[j][0]);
+                    pred_j.addLast(values[j][0]);
                 }
-                pred.add(pred_j);
+                pred_i.add(pred_j);
             }
+            pred.put(queueHead, pred_i);
+
         }
-        System.out.println(Arrays.asList(pred));
 
     }
-
+    /*
     void emparejar(TElementoLexico tokEsperado){
         if (token == tokEsperado)
             token = lexico.getNextToken();
         else
             errorSintaxis(tokEsperado);
-    }
+    }*/
 
     public static void main(String [] args){
-
+        lexer();
         try {
 
             File file =
