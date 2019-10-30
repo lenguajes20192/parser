@@ -1,0 +1,13 @@
+tk_par_izq 1,1
+tk_num 4,1,2
+tk_suma 1,4
+tk_num 3,1,6
+tk_par_der 1,7
+tk_multi 1,9
+id dos,1,11
+tk_menos 1,12
+tk_par_izq 1,15
+tk_num 5,1,16
+tk_div 1,17
+tk_num 2,1,18
+tk_par_der 1,19
