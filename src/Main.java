@@ -432,6 +432,10 @@ public class Main {
                     List<String> valuesList = Arrays.asList(values[j]);
                     if(valuesList.contains(keyFollow)){
                         if(valuesList.indexOf(keyFollow) == valuesList.size()-1){ //el que se esta evaluando es el ultimo
+                            System.out.println("valuesList: "+valuesList);
+                            System.out.println("keyFollow: "+keyFollow);
+                            System.out.println("valuesList.indexOf(keyFollow): "+valuesList.indexOf(keyFollow));
+                            System.out.println("keyRule: "+keyRule);
                             sig.addAll(follow.get(keyRule));
                         }
                         else if (!keys.contains(valuesList.get(valuesList.indexOf(keyFollow)+1))){  //el contiguo es un T
