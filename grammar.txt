@@ -15,3 +15,10 @@ opsuma->tk_suma
 opresta->tk_menos
 opmult->tk_multi
 opdiv->tk_div
+
+
+resource->tk_par_izq parameter tk_par_der
+parameter->id parameter1
+parameter1->tk_coma parameter
+parameter1->epsilon
+

@@ -1,1 +1,4 @@
-(4 + 3) * dos-(5/2)
+fa i:= 1 to NP ->
+    fa i:= 1 to
+    af
+af

@@ -1,6 +1,6 @@
-A->B C
-A->bad
-B->big C boss
-B->epsilon
-C->cat
-C->cow
+quantifier->id tk_asig termino to termino
+termino->valor
+termino->variable
+block->instruccion_fa
+block->epsilon
+instruccion_fa->fa quantifier tk_ejecuta block af

@@ -13,7 +13,7 @@ public class Main {
             "import", "int", "mod", "new","noop", "oc", "op", "or","procedure", "process", "read",
             "real", "ref", "res", "resource", "returns", "scanf", "sem", "send","sprintf", "st",
             "stop", "to", "val", "var", "write", "writes","receive","char","reply","next","string",
-            "bool","ni","co","proc"};
+            "bool","ni","co","proc","epsilon"};
 
     static String[] symbols = new String[]{"{","}",":=",":",",","[","]",";","(",")","+","++","--","<","<=",">",">=","!=",":=:","->",
             "-", "[]", "=", "%", ".", "|", "/", "*", "<<", ">>", "||", "**", "<<:=", ">>:=", "||:=", "**:=", "*:=", "/:=", "+:=",
@@ -378,30 +378,22 @@ public class Main {
         for(int i = 0; i < mp.size(); i++){
             String queueHead = keys.removeLast();
             String[][] values = mp.get(queueHead);
-            //System.out.println(Arrays.deepToString(mp.get(queueHead)));
-            //System.out.println(values.length);
+            System.out.println("queueHead: "+queueHead);
             keys.addFirst(queueHead);
             HashSet<String> pos = new HashSet<>();
             for(int j = values.length - 1; j >= 0 ; j--){
                 if(!keys.contains(values[j][0])){
                     pos.add(values[j][0]);
-                }else if (first.get(values[j][0]).contains("epsilon") && values[j].length == 1){
-
-                    Set<String> difference = new HashSet<>(first.get(values[j][0]));
-                    difference.remove("epsilon");
-                    pos.addAll(difference);
-
-                }else if(first.get(values[j][0]).contains("epsilon") && first.get(values[j][1]) != null) {
-
-                    Set<String> difference = new HashSet<>(first.get(values[j][0]));
-                    difference.remove("epsilon");
-                    pos.addAll(difference);
-
-                    pos.addAll(first.get(values[j][1]));
-
+                }else if (first.get(values[j][0]).contains("epsilon")){
+                    if (values[j].length==1){
+                        pos.addAll(first.get(values[j][0]));
+                    }else {
+                        Set<String> difference = new HashSet<>(first.get(values[j][0]));
+                        difference.remove("epsilon");
+                        pos.addAll(difference);
+                    }
                 }else{
                     pos.addAll(first.get(values[j][0]));
-
                 }
             }
             first.put(queueHead, pos);
@@ -432,10 +424,6 @@ public class Main {
                     List<String> valuesList = Arrays.asList(values[j]);
                     if(valuesList.contains(keyFollow)){
                         if(valuesList.indexOf(keyFollow) == valuesList.size()-1){ //el que se esta evaluando es el ultimo
-                            System.out.println("valuesList: "+valuesList);
-                            System.out.println("keyFollow: "+keyFollow);
-                            System.out.println("valuesList.indexOf(keyFollow): "+valuesList.indexOf(keyFollow));
-                            System.out.println("keyRule: "+keyRule);
                             sig.addAll(follow.get(keyRule));
                         }
                         else if (!keys.contains(valuesList.get(valuesList.indexOf(keyFollow)+1))){  //el contiguo es un T
@@ -487,7 +475,7 @@ public class Main {
             pred.put(queueHead, pred_i);
 
         }
-        System.out.println(Arrays.asList(pred));
+        //System.out.println(Arrays.asList(pred));
     }
 
     static void errorSintaxis(String tokEsperados, int row, int column, String lexeme){
@@ -500,7 +488,8 @@ public class Main {
         if (token == tokEsperado) {
             token = getNextToken();
         }else{
-            //errorSintaxis(tokEsperado);
+            System.out.println("Error Sintactico, se esperaba "+tokEsperado+", se encontro: "+token+"("+arrOfPos.indexOf(token)+")");
+            System.exit(1);
         }
     }
 
@@ -515,23 +504,26 @@ public class Main {
 
     static void generic(String noTerminal){
         String[][] rules = mp.get(noTerminal);
-        System.out.println(rules);
-        String[] derivation = rules[0];
-        ArrayList<HashSet<String>> predSet = pred.get(noTerminal);
         String tokEsperados = "";
-        for(int i=0; i<predSet.size();i++){
-            HashSet<String> values = predSet.get(i);
-            Iterator<String> value = values.iterator();
-            while (value.hasNext()) {
-                tokEsperados = tokEsperados+","+value.next();
-                if(token == value.next()){
-                    if(keys.contains(derivation[0])){
-                        generic(derivation[0]);
-                    }else {
-                        emparejar(derivation[0]);
+        for (int r = 0; r < rules.length; r++){
+            String[] derivation = rules[r];
+            ArrayList<HashSet<String>> predSet = pred.get(noTerminal);
+            for(int i=0; i<predSet.size();i++){
+                HashSet<String> values = predSet.get(i);
+                Iterator<String> value = values.iterator();
+                while (value.hasNext()) {
+                    tokEsperados = tokEsperados+","+value.next();
+                    if(token == value.next()){
+                        if(keys.contains(derivation[i])){
+                            generic(derivation[i]);
+                        }else {
+                            emparejar(derivation[i]);
+                        }
+                    } else {
+                        //errorSintaxis(tokEsperados);
+                        System.out.println("Error Sintactico, se esperaba "+tokEsperados+", se encontro: "+token+"("+arrOfPos.indexOf(token)+")");
+                        System.exit(1);
                     }
-                } else {
-                    //errorSintaxis(tokEsperados);
                 }
             }
         }
@@ -542,7 +534,7 @@ public class Main {
         try {
             //Read grammar
             File file =
-                    new File("grammar.txt");
+                    new File("grammar2.txt");
             Scanner sc = new Scanner(file);
 
             String line;
@@ -550,6 +542,7 @@ public class Main {
             while (sc.hasNextLine()) {
                 line = sc.nextLine() ;
                 String[] arrOfStr = line.split("->");
+                //System.out.println(Arrays.asList(arrOfStr));
                 String[] arrOfVal = arrOfStr[1].split(" ");
                 arrOfKeys.add(arrOfStr[0]);
                 if(!keys.contains(arrOfStr[0])){
@@ -582,10 +575,10 @@ public class Main {
             while (sct.hasNextLine()) {
                 linet = sct.nextLine() ;
                 String[] arrOfStrt = linet.split(" ");
-                //if(arrOfStrt.length == 3){
+                //if(arrOfStrt.length == 2){
                     arrOfTokens.add(arrOfStrt[0]);
                     arrOfPos.add(arrOfStrt[1]);
-                    token = arrOfTokens.get(0);
+                    //token = arrOfTokens.get(0);
                 //}
             }
         } catch (IOException e) {
@@ -595,9 +588,9 @@ public class Main {
         siguientes();
         prediction();
 
-        //token = "par";
-        //token = token_data[0];
-        generic("par");
+        token = getNextToken();
+        generic("instruccion_fa");
+
         //if (token != TOKFinArchivo)
         //    errorSintaxis(TOKFinArchivo);
     }

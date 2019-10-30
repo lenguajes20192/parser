@@ -74,7 +74,7 @@ public class Lexer {
                             out.println(lexeme+" "+ row + ","+ column);
                         else
                             //System.out.println("<id," + lexeme+"," + row + "," + column + ">");
-                            out.println("id " + lexeme+"," + row + "," + column);
+                            out.println("id " + lexeme+"-" + row + "," + column);
 
                         break;
 
@@ -85,12 +85,12 @@ public class Lexer {
 
                     case 3://is number
                         //System.out.println("<tk_num," + lexeme + "," + row + "," + column + ">");
-                        out.println("tk_num " + lexeme + "," + row + "," + column);
+                        out.println("tk_num " + lexeme + "-" + row + "," + column);
                         break;
 
                     case 4://is string
                         //System.out.println("<tk_cadena," + lexeme + "," + row + "," + column + ">");
-                        out.println("tk_cadena " + lexeme + "," + row + "," + column);
+                        out.println("tk_cadena " + lexeme + "-" + row + "," + column);
                         break;
 
                     default:
@@ -109,6 +109,7 @@ public class Lexer {
                     }
                     else if( fw != null ){
                         fw.close();
+
                     }
                     else{
                         // Oh boy did it fail hard! :3
